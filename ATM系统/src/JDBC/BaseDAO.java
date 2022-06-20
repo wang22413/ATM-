@@ -20,10 +20,10 @@ public class BaseDAO {
             return ps.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
+        }/* finally {
             // 4.资源的关闭
             JDBCUtil.closeResource(null, ps);
-        }
+        }*/
         return 0;
     }
 
@@ -57,9 +57,9 @@ public class BaseDAO {
             }
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
+        }/* finally {
             JDBCUtil.closeResource(null,ps,rs);
-        }
+        }*/
         return null;
     }
 
@@ -101,9 +101,9 @@ public class BaseDAO {
             return list;
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
+        }/* finally {
             JDBCUtil.closeResource(null,ps,rs);
-        }
+        }*/
         return null;
     }
 
@@ -123,9 +123,9 @@ public class BaseDAO {
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
-        } finally {
+        }/* finally {
             JDBCUtil.closeResource(null,ps,rs);
-        }
+        }*/
         return null;
     }
 

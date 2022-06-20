@@ -36,8 +36,6 @@ public class ATMDAOImpl extends BaseDAO implements ATMDAO {
             value = getValue(conn, sql,id);
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            JDBCUtil.closeResource(conn,null);
         }
         return new BigDecimal(value.toString());
     }
@@ -59,8 +57,6 @@ public class ATMDAOImpl extends BaseDAO implements ATMDAO {
             }
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            JDBCUtil.closeResource(conn,null);
         }
         return null;
     }
@@ -82,8 +78,6 @@ public class ATMDAOImpl extends BaseDAO implements ATMDAO {
             }
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            JDBCUtil.closeResource(conn,null);
         }
         return false;
     }
@@ -107,8 +101,6 @@ public class ATMDAOImpl extends BaseDAO implements ATMDAO {
             } catch (SQLException t) {
                 t.printStackTrace();
             }
-        } finally {
-            JDBCUtil.closeResource(conn,null);
         }
         return false;
     }
@@ -126,8 +118,6 @@ public class ATMDAOImpl extends BaseDAO implements ATMDAO {
             value = getValue(conn, sql, id);
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            JDBCUtil.closeResource(conn,null);
         }
         return Integer.parseInt(value.toString());
     }
@@ -145,8 +135,6 @@ public class ATMDAOImpl extends BaseDAO implements ATMDAO {
             password = getValue(conn, sql, id);
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            JDBCUtil.closeResource(conn,null);
         }
         return Integer.parseInt(password.toString());
     }
@@ -165,8 +153,6 @@ public class ATMDAOImpl extends BaseDAO implements ATMDAO {
             return users;
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            JDBCUtil.closeResource(conn,null);
         }
         return null;
     }
@@ -181,8 +167,10 @@ public class ATMDAOImpl extends BaseDAO implements ATMDAO {
     @Override
     public Boolean deposit(Connection conn, int id, BigDecimal balance) {
         try {
+            conn.setAutoCommit(false);
             String sql1 = "update users set balance = balance + ? where id = ?";
             int i = update(conn, sql1, balance, id);
+            conn.commit();
             if (i != 0) {
                 return true;
             }
@@ -192,11 +180,14 @@ public class ATMDAOImpl extends BaseDAO implements ATMDAO {
                 conn.rollback();
             } catch (SQLException t) {
                 t.printStackTrace();
-            } finally {
-                JDBCUtil.closeResource(conn,null);
+            }
+        } finally {
+            try {
+                conn.setAutoCommit(true);
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
             }
         }
-
         return false;
     }
 
@@ -210,8 +201,10 @@ public class ATMDAOImpl extends BaseDAO implements ATMDAO {
     @Override
     public Boolean withdrawal(Connection conn, int id, BigDecimal balance) {
         try {
+            conn.setAutoCommit(false);
             String sql1 = "update users set balance = balance - ? where id = ?";
             int i = update(conn, sql1, balance, id);
+            conn.commit();
             if (i != 0) {
                 return true;
             }
@@ -221,8 +214,12 @@ public class ATMDAOImpl extends BaseDAO implements ATMDAO {
                 conn.rollback();
             } catch (SQLException t) {
                 t.printStackTrace();
-            } finally {
-                JDBCUtil.closeResource(conn,null);
+            }
+        } finally {
+            try {
+                conn.setAutoCommit(true);
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
             }
         }
         return false;
@@ -238,10 +235,12 @@ public class ATMDAOImpl extends BaseDAO implements ATMDAO {
     @Override
     public void transfer(Connection conn, int id1,int id2, BigDecimal balance) {
         try {
+            conn.setAutoCommit(false);
             String sql1 = "update users set balance = balance - ? where id = ?";
             update(conn,sql1,balance,id1);
             String sql2 = "update users set balance = balance + ? where id = ?";
             update(conn,sql2,balance,id2);
+            conn.commit();
         } catch (Exception e) {
             System.out.println("转账失败");
             e.printStackTrace();
@@ -251,7 +250,11 @@ public class ATMDAOImpl extends BaseDAO implements ATMDAO {
                 t.printStackTrace();
             }
         } finally {
-            JDBCUtil.closeResource(conn,null);
+            try {
+                conn.setAutoCommit(true);
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
         }
     }
 }

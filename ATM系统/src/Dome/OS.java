@@ -6,7 +6,6 @@ import JDBC.Users;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Scanner;
 
 import static Dome.main.menu;
@@ -15,12 +14,11 @@ public class OS {
 
     private static Scanner sc = new Scanner(System.in);
     private static ATMDAOImpl adi = new ATMDAOImpl();
-    private static Connection conn = null;
+    private static Connection conn = JDBCUtil.getConnection();
     private static BigDecimal balance = new BigDecimal("0.00");
     private static BigDecimal balanceToDay = new BigDecimal("30000.00");
 
     public static void os(Users user) {
-        conn = JDBCUtil.getConnection();
         System.out.println("---欢迎来到WH银行用户操作系统---");
         System.out.println("1.查询");
         System.out.println("2.存款");
@@ -51,6 +49,7 @@ public class OS {
                 writeOff(user);break;
             default:
                 System.out.println("已退出当前账号");
+                balanceToDay = new BigDecimal("30000.00");
                 menu();
                 break;
         }
@@ -66,9 +65,10 @@ public class OS {
         System.out.println(user.getName());
         System.out.print("余额:");
         System.out.println(adi.getBalance(conn,user.getId()));
-        System.out.print("当日可取余额:");
+        System.out.print("当日可取/转余额:");
         balanceToDay = balanceToDay.subtract(balance);
         System.out.println(balanceToDay);
+        balance = new BigDecimal("0.00");
         oss(user);
     }
 
@@ -97,7 +97,6 @@ public class OS {
         }
         while (user.getBalance().compareTo(balance) == -1) {
             System.out.print("余额不足,请重新输入(当前余额为" +adi.getBalance(conn,user.getId()) + "):");
-            conn = JDBCUtil.getConnection();
             balance = sc.nextBigDecimal();
         }
         Boolean b = adi.withdrawal(conn, user.getId(), balance);
@@ -114,15 +113,12 @@ public class OS {
         System.out.print("转账用户id:");
         int id = sc.nextInt();
         while (adi.inquireId(conn,id) == 0) {
-            conn = JDBCUtil.getConnection();
             System.out.println("id错误,请重新输入id:");
             id = sc.nextInt();
         }
         System.out.print("转账数额:");
         balance = sc.nextBigDecimal();
-        conn = JDBCUtil.getConnection();
         while (user.getBalance().compareTo(balance) == -1) {
-            conn = JDBCUtil.getConnection();
             System.out.println("余额不足,请重新输入余额:(当前余额为" +user.getBalance() + ")");
             balance = sc.nextBigDecimal();
         }
@@ -140,7 +136,6 @@ public class OS {
         if (password != adi.getPasswordById(conn,user.getId())) {
             System.out.println("当前密码错误");
             System.out.println("----------------");
-            conn = JDBCUtil.getConnection();
             changePassword(user);
         }
         System.out.print("请输入新密码:");
@@ -148,7 +143,6 @@ public class OS {
         System.out.print("再次输入新密码:");
         int i2 = sc.nextInt();
         if (i1 == i2) {
-            conn = JDBCUtil.getConnection();
             Boolean Boolean = adi.changePassword(conn, user, i1);
             if (Boolean) {
                 System.out.println("修改成功");
@@ -169,7 +163,7 @@ public class OS {
         System.out.print("是否注销该账号:");
         if ("是".equals(sc.next())) {
             Boolean Boolean = adi.writeOff(conn, user);
-            if (Boolean == true) {
+            if (Boolean) {
                 System.out.println("注销成功");
                 menu();
             }
@@ -185,16 +179,11 @@ public class OS {
      * @param user
      */
     public static void oss(Users user) {
-        try {
-            conn.close();
-        } catch (SQLException t) {
-            t.printStackTrace();
-        }
         System.out.print("按1继续操作(其他键退出当前账号):");
         if (sc.nextInt() == 1) {
             os(user);
         } else {
-            JDBCUtil.closeResource(conn,null);
+            balanceToDay = new BigDecimal("30000.00");
             System.out.println("已退出当前账号");
             menu();
         }

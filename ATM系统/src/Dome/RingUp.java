@@ -12,13 +12,12 @@ import static Dome.main.menu;
 public class RingUp {
     private static ATMDAOImpl adi = new ATMDAOImpl();
     private static Scanner sc = new Scanner(System.in);
-    private static Connection conn = null;
+    private static Connection conn = JDBCUtil.getConnection();
 
     /**
      * 登录
      */
     static void ringUp() {
-        conn = JDBCUtil.getConnection();
         System.out.println("------登录界面------");
         System.out.println("请输入卡号:");
         int id = sc.nextInt();
